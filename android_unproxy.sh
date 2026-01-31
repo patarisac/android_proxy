@@ -27,14 +27,12 @@ if [ -n "$PKG" ]; then
     echo "Targeting UID: $TARGETAPP_UID"
 fi
 
-# build iptables rule
+# build iptables delete rule (must match exactly)
 if [ -n "$TARGETAPP_UID" ]; then
-    CMD_1="iptables -t nat -A OUTPUT -p tcp -m owner --uid-owner $TARGETAPP_UID -j DNAT --to-destination $DIP:$DPORT"
+    CMD_1="iptables -t nat -D OUTPUT -p tcp -m owner --uid-owner $TARGETAPP_UID -j DNAT --to-destination $DIP:$DPORT"
 else
-    CMD_1="iptables -t nat -A OUTPUT -p tcp ! --dport 27042 -j DNAT --to-destination $DIP:$DPORT"
+    CMD_1="iptables -t nat -D OUTPUT -p tcp ! --dport 27042 -j DNAT --to-destination $DIP:$DPORT"
 fi
-
-adb reverse tcp:$DPORT tcp:$DPORT
 
 # privilege handling
 if [ "$(adb shell whoami)" != "root" ]; then
@@ -46,5 +44,8 @@ if [ "$(adb shell whoami)" != "root" ]; then
 fi
 
 adb shell "$CMD_1"
-echo "Proxy active → $DIP:$DPORT"
 
+# remove adb reverse
+adb reverse --remove tcp:$DPORT
+
+echo "Proxy removed → $DIP:$DPORT"
