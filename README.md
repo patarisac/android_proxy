@@ -1,68 +1,57 @@
 # android_proxy
 
-Scripts to force an Android app to route all its traffic through Burp Suite by applying per-app or global proxy rules using iptables.
-
-## Files
-
-* android_proxy.sh     : enable proxy for a specific app or globally
-* android_unproxy.sh   : remove the proxy and restore normal routing
+A unified, cross-platform Python utility designed to dynamically inject or remove custom network routing profiles inside a rooted Android environment. It explicitly forces per-application or device-wide traffic to cleanly map back to local interception proxies (e.g., Burp Suite listeners) across Linux, macOS, and Windows.
 
 ## Requirements
 
-* Android device or AVD must be rooted
-* Android device must be on the same network as the host (laptop/PC running Burp Suite)
+- **Root Access:** Target physical hardware or Android Virtual Devices (AVD) must possess established root boundaries (`su`).
+- **System Boundaries:** Host operating environments must expose `adb` universally through native shell configuration paths.
 
-## Tested
-- Android Emulator (AVD) up to Android 15
-- Physical Android device up to Android 14
+---
 
-This approach should work on all (rooted) Android versions that support iptables.
+## Usage Guide
 
-
-## Setup
-
+Give the script executive running permissions (Linux/macOS platforms only):
 ```bash
-chmod +x android_proxy.sh android_unproxy.sh
+chmod +x android_proxy.py
 ```
 
-## Usage
-
-### Enable proxy (specific app):
-
+### 1. Intercept a Specific Target Application
+To isolate, register, and lock an interface loop down to a single chosen bundle ID, pair your command execution with the specific package target flag:
 ```bash
-./android_proxy.sh -u <package_id> -p <burp_port>
+./android_proxy.py -s -u com.example.targetapp -p 8082
+```
+*(On Windows systems, invoke using explicit terminal handles: `python android_proxy.py -s -u com.example.targetapp -p 8082`)*
+
+### 2. Route Device Traffic Globally
+To enforce interception parameters device-wide across all systemic framework endpoints (safely blacklisting the base infrastructure communication loop at `27042` to eliminate proxy cascade locks), omit the package parameter completely:
+```bash
+./android_proxy.py -s -p 8082
 ```
 
-### Disable proxy (specific app):
-
+### 3. Survey Currently Active Proxy Configurations
+To look into the host engine runtime data and active loop variables without mutating running parameters:
 ```bash
-./android_unproxy.sh -u <package_id> -p <burp_port>
+./android_proxy.py -l
+```
+**Example Runtime Map:**
+```text
+=== Active Proxy Rules ===
+No.  Target Scope / Package                   Burp Proxy Port
+1    com.example.targetapp                    8082           
+2    Global (All Apps)                        8084           
 ```
 
-### Enable proxy (all Android traffic):
-
+### 4. Interactive Configuration Teardown
+To securely teardown active listeners and structural loops without leaving device endpoints in dead states, invoke the targeted removal manager:
 ```bash
-./android_proxy.sh -p <burp_port>
+./android_proxy.py -r
 ```
+Simply choose the rule index integer from the provided list to simultaneously strip away the target device iptables rules and detach the structural host reverse ADB maps.
 
-### Disable proxy (all Android traffic):
+---
 
-```bash
-./android_unproxy.sh -p <burp_port>
-```
+## Technical Notes
 
-### Example
-
-```bash
-./android_proxy.sh -u com.example.app -p 8083 # route all com.example.app traffic to host's 8083 port
-./android_unproxy.sh -u com.example.app -p 8083 # undo
-
-./android_proxy.sh -p 8083 # route all Android apps' traffic to host's 8083 port
-./android_unproxy.sh -p 8083 # undo
-```
-
-## Notes
-
-* This script modifies iptables rules on the device. Network connectivity may break if rules are not reverted properly.
-* All modifications are temporary and will be automatically cleared after the Android device reboots.
-* Always run android_unproxy.sh after testing to restore the original network state without rebooting.
+- **Volatile Execution:** Custom device-side `iptables` hooks live strictly in volatile memory. If your testing canvas crashes or needs an immediate reset, executing an emulator cold reboot clears all changes.
+- **Session Clean Up:** Always run the `-r` unproxy selection when tearing down proxy hooks. Leaving hooks in place without an active intercept listener can drop your test device's network traffic entirely.
